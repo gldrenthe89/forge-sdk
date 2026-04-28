@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\OpenAPI;
 
 /**
@@ -27,6 +29,7 @@ class DeploymentsTest extends OpenAPITestCase
 
             if (! $sdkMethod) {
                 $uncovered[] = "$signature (no SDK method mapped)";
+
                 continue;
             }
 
@@ -37,7 +40,7 @@ class DeploymentsTest extends OpenAPITestCase
 
         if (! empty($uncovered)) {
             $this->fail(
-                "The following ".count($uncovered)." Deployments endpoints do not have SDK methods:\n".
+                'The following '.count($uncovered)." Deployments endpoints do not have SDK methods:\n".
                 implode("\n", $uncovered)
             );
         }
@@ -74,7 +77,7 @@ class DeploymentsTest extends OpenAPITestCase
 
         if (! empty($missingTests)) {
             $this->fail(
-                "The following ".count($missingTests)." Deployments SDK methods do not have tests:\n".
+                'The following '.count($missingTests)." Deployments SDK methods do not have tests:\n".
                 implode("\n", $missingTests)
             );
         }
@@ -115,6 +118,6 @@ class DeploymentsTest extends OpenAPITestCase
         echo "Total Endpoints: $totalEndpoints\n";
         echo "Mapped to SDK: $mappedEndpoints (".($totalEndpoints > 0 ? round($mappedEndpoints / $totalEndpoints * 100, 2) : 0)."%)\n";
         echo "With Tests: $testedEndpoints (".($totalEndpoints > 0 ? round($testedEndpoints / $totalEndpoints * 100, 2) : 0)."%)\n";
-        echo str_repeat('=', strlen("Deployments API Coverage") + 8) . "\n\n";
+        echo str_repeat('=', strlen('Deployments API Coverage') + 8)."\n\n";
     }
 }

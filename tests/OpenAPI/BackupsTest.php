@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\OpenAPI;
 
 /**
@@ -27,6 +29,7 @@ class BackupsTest extends OpenAPITestCase
 
             if (! $sdkMethod) {
                 $uncovered[] = "$signature (no SDK method mapped)";
+
                 continue;
             }
 

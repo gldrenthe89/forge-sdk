@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Forge\Actions;
 
+use Laravel\Forge\CursorPaginator;
+use Laravel\Forge\Resources\DeployKey;
 use Laravel\Forge\Resources\Deployment;
 use Laravel\Forge\Resources\Webhook;
 
@@ -9,249 +13,209 @@ trait ManagesDeployments
 {
     /**
      * Get the collection of webhooks for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\Webhook[]
      */
-    public function webhooks($organizationSlug, $serverId, $siteId)
+    public function webhooks(string $organizationSlug, int $serverId, int $siteId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks",
             Webhook::class,
-            ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId]
+            $organizationSlug,
+            $serverId,
+            $siteId,
+            query: $query,
         );
     }
 
     /**
      * Get a webhook instance.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $webhookId
-     * @return \Laravel\Forge\Resources\Webhook
      */
-    public function webhook($organizationSlug, $serverId, $siteId, $webhookId)
+    public function webhook(string $organizationSlug, int $serverId, int $siteId, int $webhookId): Webhook
     {
-        return new Webhook(
+        return $this->newResource(
+            Webhook::class,
             $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks/{$webhookId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            $serverId,
+            $siteId,
         );
     }
 
     /**
      * Create a new webhook.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\Webhook
      */
-    public function createWebhook($organizationSlug, $serverId, $siteId, array $data)
+    public function createWebhook(string $organizationSlug, int $serverId, int $siteId, array $data): Webhook
     {
-        $webhook = $this->post(
-            "orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks",
-            $data
-        )['data'] ?? [];
-
-        return new Webhook(
-            $webhook + ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId],
-            $this
+        return $this->newResource(
+            Webhook::class,
+            $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks", $data)['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+            $siteId,
         );
     }
 
     /**
      * Delete the given webhook.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $webhookId
-     * @return void
      */
-    public function deleteWebhook($organizationSlug, $serverId, $siteId, $webhookId)
+    public function deleteWebhook(string $organizationSlug, int $serverId, int $siteId, int $webhookId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/webhooks/{$webhookId}");
     }
 
     /**
      * Get the collection of deployments for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\Deployment[]
      */
-    public function deployments($organizationSlug, $serverId, $siteId)
+    public function deployments(string $organizationSlug, int $serverId, int $siteId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments",
             Deployment::class,
-            ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId]
+            $organizationSlug,
+            $serverId,
+            $siteId,
+            query: $query,
         );
     }
 
     /**
      * Get a deployment instance.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $deploymentId
-     * @return \Laravel\Forge\Resources\Deployment
      */
-    public function deployment($organizationSlug, $serverId, $siteId, $deploymentId)
+    public function deployment(string $organizationSlug, int $serverId, int $siteId, int $deploymentId): Deployment
     {
-        return new Deployment(
+        return $this->newResource(
+            Deployment::class,
             $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/{$deploymentId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            $serverId,
+            $siteId,
         );
     }
 
     /**
      * Create a new deployment.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\Deployment
      */
-    public function createDeployment($organizationSlug, $serverId, $siteId, array $data = [])
+    public function createDeployment(string $organizationSlug, int $serverId, int $siteId, array $data = []): Deployment
     {
-        $deployment = $this->post(
-            "orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments",
-            $data
-        )['data'] ?? [];
-
-        return new Deployment(
-            $deployment + ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId],
-            $this
+        return $this->newResource(
+            Deployment::class,
+            $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments", $data)['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+            $siteId,
         );
     }
 
     /**
      * Get the deployment status for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return array
      */
-    public function deploymentStatus($organizationSlug, $serverId, $siteId)
+    public function deploymentStatus(string $organizationSlug, int $serverId, int $siteId): array
     {
         return $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/status")['data'] ?? [];
     }
 
     /**
      * Disable quick deploy for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return void
      */
-    public function disableQuickDeploy($organizationSlug, $serverId, $siteId)
+    public function disableQuickDeploy(string $organizationSlug, int $serverId, int $siteId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/status");
     }
 
     /**
      * Get the deployment script for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return string
      */
-    public function deploymentScript($organizationSlug, $serverId, $siteId)
+    public function deploymentScript(string $organizationSlug, int $serverId, int $siteId): string
     {
         $response = $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/script");
 
-        return $response['data']['script'] ?? $response['script'] ?? '';
+        return $response['data']['attributes']['content'] ?? '';
     }
 
     /**
      * Update the deployment script for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return void
      */
-    public function updateDeploymentScript($organizationSlug, $serverId, $siteId, array $data)
+    public function updateDeploymentScript(string $organizationSlug, int $serverId, int $siteId, array $data): void
     {
         $this->put("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/script", $data);
     }
 
     /**
      * Get the deployment trigger URL for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return string
      */
-    public function deploymentTriggerUrl($organizationSlug, $serverId, $siteId)
+    public function deploymentTriggerUrl(string $organizationSlug, int $serverId, int $siteId): string
     {
         $response = $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/deploy-hook");
 
-        return $response['data']['url'] ?? $response['url'] ?? '';
+        return $response['data']['attributes']['url'] ?? '';
     }
 
     /**
      * Update the deployment trigger URL for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return void
      */
-    public function updateDeploymentTriggerUrl($organizationSlug, $serverId, $siteId, array $data)
+    public function updateDeploymentTriggerUrl(string $organizationSlug, int $serverId, int $siteId, array $data): void
     {
         $this->put("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/deploy-hook", $data);
     }
 
     /**
      * Enable push to deploy for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return void
      */
-    public function enablePushToDeploy($organizationSlug, $serverId, $siteId, array $data)
+    public function enablePushToDeploy(string $organizationSlug, int $serverId, int $siteId, array $data): void
     {
         $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/push-to-deploy", $data);
     }
 
     /**
      * Disable push to deploy for a site (delete the push to deploy configuration).
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return void
      */
-    public function disablePushToDeploy($organizationSlug, $serverId, $siteId)
+    public function disablePushToDeploy(string $organizationSlug, int $serverId, int $siteId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/push-to-deploy");
     }
 
     /**
      * Get the deployment log for a deployment.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $deploymentId
-     * @return string
      */
-    public function deploymentLog($organizationSlug, $serverId, $siteId, $deploymentId)
+    public function deploymentLog(string $organizationSlug, int $serverId, int $siteId, int $deploymentId): string
     {
         $response = $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deployments/{$deploymentId}/log");
 
-        return $response['data']['output'] ?? $response['output'] ?? '';
+        return $response['data']['attributes']['output'] ?? '';
+    }
+
+    /**
+     * Get the deploy key for a site.
+     */
+    public function deployKey(string $organizationSlug, int $serverId, int $siteId): DeployKey
+    {
+        return $this->newResource(
+            DeployKey::class,
+            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deploy-key")['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+            $siteId,
+        );
+    }
+
+    /**
+     * Create a deploy key for a site (returns existing key if one already exists).
+     */
+    public function createDeployKey(string $organizationSlug, int $serverId, int $siteId): DeployKey
+    {
+        return $this->newResource(
+            DeployKey::class,
+            $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deploy-key")['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+            $siteId,
+        );
+    }
+
+    /**
+     * Delete the deploy key for a site.
+     */
+    public function deleteDeployKey(string $organizationSlug, int $serverId, int $siteId): void
+    {
+        $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/deploy-key");
     }
 }

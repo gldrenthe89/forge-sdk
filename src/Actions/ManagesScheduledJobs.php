@@ -1,161 +1,130 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Forge\Actions;
 
+use Laravel\Forge\CursorPaginator;
 use Laravel\Forge\Resources\ScheduledJob;
 
 trait ManagesScheduledJobs
 {
     /**
      * Get the collection of scheduled jobs.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @return \Laravel\Forge\Resources\ScheduledJob[]
      */
-    public function scheduledJobs($organizationSlug, $serverId)
+    public function scheduledJobs(string $organizationSlug, int $serverId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs",
             ScheduledJob::class,
-            ['organization_id' => $organizationSlug, 'server_id' => $serverId]
+            $organizationSlug,
+            $serverId,
+            query: $query,
         );
     }
 
     /**
      * Get a scheduled job instance.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $jobId
-     * @return \Laravel\Forge\Resources\ScheduledJob
      */
-    public function scheduledJob($organizationSlug, $serverId, $jobId)
+    public function scheduledJob(string $organizationSlug, int $serverId, int $jobId): ScheduledJob
     {
-        return new ScheduledJob(
+        return $this->newResource(
+            ScheduledJob::class,
             $this->get("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs/{$jobId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            $serverId,
         );
     }
 
     /**
      * Create a new scheduled job.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @return \Laravel\Forge\Resources\ScheduledJob
      */
-    public function createScheduledJob($organizationSlug, $serverId, array $data)
+    public function createScheduledJob(string $organizationSlug, int $serverId, array $data): ScheduledJob
     {
-        $job = $this->post("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs", $data)['data'] ?? [];
-
-        return new ScheduledJob($job + ['organization_id' => $organizationSlug, 'server_id' => $serverId], $this);
+        return $this->newResource(
+            ScheduledJob::class,
+            $this->post("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs", $data)['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+        );
     }
 
     /**
      * Delete the given scheduled job.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $jobId
-     * @return void
      */
-    public function deleteScheduledJob($organizationSlug, $serverId, $jobId)
+    public function deleteScheduledJob(string $organizationSlug, int $serverId, int $jobId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs/{$jobId}");
     }
 
     /**
      * Get the output for a scheduled job.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $jobId
-     * @return string
      */
-    public function scheduledJobOutput($organizationSlug, $serverId, $jobId)
+    public function scheduledJobOutput(string $organizationSlug, int $serverId, int $jobId): string
     {
         $response = $this->get("orgs/{$organizationSlug}/servers/{$serverId}/scheduled-jobs/{$jobId}/output");
 
-        return $response['data']['output'] ?? $response['output'] ?? '';
+        return $response['data']['attributes']['output'] ?? '';
     }
 
     /**
      * Get the collection of scheduled jobs for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\ScheduledJob[]
      */
-    public function siteScheduledJobs($organizationSlug, $serverId, $siteId)
+    public function siteScheduledJobs(string $organizationSlug, int $serverId, int $siteId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs",
             ScheduledJob::class,
-            ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId]
+            $organizationSlug,
+            $serverId,
+            $siteId,
+            query: $query,
         );
     }
 
     /**
      * Get a scheduled job for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $jobId
-     * @return \Laravel\Forge\Resources\ScheduledJob
      */
-    public function siteScheduledJob($organizationSlug, $serverId, $siteId, $jobId)
+    public function siteScheduledJob(string $organizationSlug, int $serverId, int $siteId, int $jobId): ScheduledJob
     {
-        return new ScheduledJob(
+        return $this->newResource(
+            ScheduledJob::class,
             $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs/{$jobId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            $serverId,
+            $siteId,
         );
     }
 
     /**
      * Create a new scheduled job for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @return \Laravel\Forge\Resources\ScheduledJob
      */
-    public function createSiteScheduledJob($organizationSlug, $serverId, $siteId, array $data)
+    public function createSiteScheduledJob(string $organizationSlug, int $serverId, int $siteId, array $data): ScheduledJob
     {
-        $job = $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs", $data)['data'] ?? [];
-
-        return new ScheduledJob($job + ['organization_id' => $organizationSlug, 'server_id' => $serverId, 'site_id' => $siteId], $this);
+        return $this->newResource(
+            ScheduledJob::class,
+            $this->post("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs", $data)['data'] ?? [],
+            $organizationSlug,
+            $serverId,
+            $siteId,
+        );
     }
 
     /**
      * Delete a scheduled job for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $jobId
-     * @return void
      */
-    public function deleteSiteScheduledJob($organizationSlug, $serverId, $siteId, $jobId)
+    public function deleteSiteScheduledJob(string $organizationSlug, int $serverId, int $siteId, int $jobId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs/{$jobId}");
     }
 
     /**
      * Get the output for a scheduled job for a site.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $siteId
-     * @param  string  $jobId
-     * @return string
      */
-    public function siteScheduledJobOutput($organizationSlug, $serverId, $siteId, $jobId)
+    public function siteScheduledJobOutput(string $organizationSlug, int $serverId, int $siteId, int $jobId): string
     {
         $response = $this->get("orgs/{$organizationSlug}/servers/{$serverId}/sites/{$siteId}/scheduled-jobs/{$jobId}/output");
 
-        return $response['data']['output'] ?? $response['output'] ?? '';
+        return $response['data']['attributes']['output'] ?? '';
     }
 }

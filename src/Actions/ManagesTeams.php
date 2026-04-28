@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Forge\Actions;
 
+use Laravel\Forge\CursorPaginator;
 use Laravel\Forge\Resources\Team;
 use Laravel\Forge\Resources\TeamInvitation;
 use Laravel\Forge\Resources\TeamMember;
@@ -10,185 +13,153 @@ trait ManagesTeams
 {
     /**
      * Get the collection of teams for an organization.
-     *
-     * @param  string  $organizationSlug
-     * @return \Laravel\Forge\Resources\Team[]
      */
-    public function teams($organizationSlug)
+    public function teams(string $organizationSlug, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/teams")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/teams",
             Team::class,
-            ['organization_id' => $organizationSlug]
+            $organizationSlug,
+            query: $query,
         );
     }
 
     /**
      * Get a team.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return \Laravel\Forge\Resources\Team
      */
-    public function team($organizationSlug, $teamId)
+    public function team(string $organizationSlug, int $teamId): Team
     {
-        return new Team($this->get("orgs/{$organizationSlug}/teams/{$teamId}")['data'] ?? [], $this);
+        return $this->newResource(
+            Team::class,
+            $this->get("orgs/{$organizationSlug}/teams/{$teamId}")['data'] ?? [],
+            $organizationSlug,
+        );
     }
 
     /**
      * Create a new team.
-     *
-     * @param  string  $organizationSlug
-     * @return \Laravel\Forge\Resources\Team
      */
-    public function createTeam($organizationSlug, array $data)
+    public function createTeam(string $organizationSlug, array $data): Team
     {
-        $team = $this->post("orgs/{$organizationSlug}/teams", $data)['data'] ?? [];
-
-        return new Team($team + ['organization_id' => $organizationSlug], $this);
+        return $this->newResource(
+            Team::class,
+            $this->post("orgs/{$organizationSlug}/teams", $data)['data'] ?? [],
+            $organizationSlug,
+        );
     }
 
     /**
      * Update a team.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return \Laravel\Forge\Resources\Team
      */
-    public function updateTeam($organizationSlug, $teamId, array $data)
+    public function updateTeam(string $organizationSlug, int $teamId, array $data): Team
     {
-        $team = $this->put("orgs/{$organizationSlug}/teams/{$teamId}", $data)['data'] ?? [];
-
-        return new Team($team, $this);
+        return $this->newResource(
+            Team::class,
+            $this->put("orgs/{$organizationSlug}/teams/{$teamId}", $data)['data'] ?? [],
+            $organizationSlug,
+        );
     }
 
     /**
      * Delete a team.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return void
      */
-    public function deleteTeam($organizationSlug, $teamId)
+    public function deleteTeam(string $organizationSlug, int $teamId): void
     {
         $this->delete("orgs/{$organizationSlug}/teams/{$teamId}");
     }
 
     /**
      * Get the collection of team members.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return \Laravel\Forge\Resources\TeamMember[]
      */
-    public function teamMembers($organizationSlug, $teamId)
+    public function teamMembers(string $organizationSlug, int $teamId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/teams/{$teamId}/members")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/teams/{$teamId}/members",
             TeamMember::class,
-            ['organization_id' => $organizationSlug, 'team_id' => $teamId]
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
+            query: $query,
         );
     }
 
     /**
      * Get a team member.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @param  string  $userId
-     * @return \Laravel\Forge\Resources\TeamMember
      */
-    public function teamMember($organizationSlug, $teamId, $userId)
+    public function teamMember(string $organizationSlug, int $teamId, int $userId): TeamMember
     {
-        return new TeamMember(
+        return $this->newResource(
+            TeamMember::class,
             $this->get("orgs/{$organizationSlug}/teams/{$teamId}/members/{$userId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
         );
     }
 
     /**
      * Update a team member.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @param  string  $userId
-     * @return \Laravel\Forge\Resources\TeamMember
      */
-    public function updateTeamMember($organizationSlug, $teamId, $userId, array $data)
+    public function updateTeamMember(string $organizationSlug, int $teamId, int $userId, array $data): TeamMember
     {
-        $member = $this->put("orgs/{$organizationSlug}/teams/{$teamId}/members/{$userId}", $data)['data'] ?? [];
-
-        return new TeamMember($member, $this);
+        return $this->newResource(
+            TeamMember::class,
+            $this->put("orgs/{$organizationSlug}/teams/{$teamId}/members/{$userId}", $data)['data'] ?? [],
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
+        );
     }
 
     /**
      * Delete a team member.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @param  string  $userId
-     * @return void
      */
-    public function deleteTeamMember($organizationSlug, $teamId, $userId)
+    public function deleteTeamMember(string $organizationSlug, int $teamId, int $userId): void
     {
         $this->delete("orgs/{$organizationSlug}/teams/{$teamId}/members/{$userId}");
     }
 
     /**
      * Get the collection of team invitations.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return \Laravel\Forge\Resources\TeamInvitation[]
      */
-    public function teamInvitations($organizationSlug, $teamId)
+    public function teamInvitations(string $organizationSlug, int $teamId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/teams/{$teamId}/invites")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/teams/{$teamId}/invites",
             TeamInvitation::class,
-            ['organization_id' => $organizationSlug, 'team_id' => $teamId]
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
+            query: $query,
         );
     }
 
     /**
      * Get a team invitation.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @param  string  $invitationId
-     * @return \Laravel\Forge\Resources\TeamInvitation
      */
-    public function teamInvitation($organizationSlug, $teamId, $invitationId)
+    public function teamInvitation(string $organizationSlug, int $teamId, int $invitationId): TeamInvitation
     {
-        return new TeamInvitation(
+        return $this->newResource(
+            TeamInvitation::class,
             $this->get("orgs/{$organizationSlug}/teams/{$teamId}/invites/{$invitationId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
         );
     }
 
     /**
      * Create a team invitation.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @return \Laravel\Forge\Resources\TeamInvitation
      */
-    public function createTeamInvitation($organizationSlug, $teamId, array $data)
+    public function createTeamInvitation(string $organizationSlug, int $teamId, array $data): TeamInvitation
     {
-        $invitation = $this->post("orgs/{$organizationSlug}/teams/{$teamId}/invites", $data)['data'] ?? [];
-
-        return new TeamInvitation($invitation + ['organization_id' => $organizationSlug, 'team_id' => $teamId], $this);
+        return $this->newResource(
+            TeamInvitation::class,
+            $this->post("orgs/{$organizationSlug}/teams/{$teamId}/invites", $data)['data'] ?? [],
+            $organizationSlug,
+            extra: ['team_id' => $teamId],
+        );
     }
 
     /**
      * Delete a team invitation.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $teamId
-     * @param  string  $invitationId
-     * @return void
      */
-    public function deleteTeamInvitation($organizationSlug, $teamId, $invitationId)
+    public function deleteTeamInvitation(string $organizationSlug, int $teamId, int $invitationId): void
     {
         $this->delete("orgs/{$organizationSlug}/teams/{$teamId}/invites/{$invitationId}");
     }

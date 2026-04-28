@@ -1,66 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Forge\Actions;
 
+use Laravel\Forge\CursorPaginator;
 use Laravel\Forge\Resources\Monitor;
 
 trait ManagesMonitors
 {
     /**
      * Get the collection of monitors.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @return \Laravel\Forge\Resources\Monitor[]
      */
-    public function monitors($organizationSlug, $serverId)
+    public function monitors(string $organizationSlug, int $serverId, array $query = []): CursorPaginator
     {
-        return $this->transformCollection(
-            $this->get("orgs/{$organizationSlug}/servers/{$serverId}/monitors")['data'] ?? [],
+        return $this->paginatedCollection(
+            "orgs/{$organizationSlug}/servers/{$serverId}/monitors",
             Monitor::class,
-            ['organization_id' => $organizationSlug, 'server_id' => $serverId]
+            $organizationSlug,
+            $serverId,
+            query: $query,
         );
     }
 
     /**
      * Get a monitor instance.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $monitorId
-     * @return \Laravel\Forge\Resources\Monitor
      */
-    public function monitor($organizationSlug, $serverId, $monitorId)
+    public function monitor(string $organizationSlug, int $serverId, int $monitorId): Monitor
     {
-        return new Monitor(
+        return $this->newResource(
+            Monitor::class,
             $this->get("orgs/{$organizationSlug}/servers/{$serverId}/monitors/{$monitorId}")['data'] ?? [],
-            $this
+            $organizationSlug,
+            $serverId,
         );
     }
 
     /**
      * Create a new monitor.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @return \Laravel\Forge\Resources\Monitor
      */
-    public function createMonitor($organizationSlug, $serverId, array $data)
+    public function createMonitor(string $organizationSlug, int $serverId, array $data): void
     {
-        $monitor = $this->post("orgs/{$organizationSlug}/servers/{$serverId}/monitors", $data)['data'] ?? [];
-
-        return new Monitor($monitor + ['organization_id' => $organizationSlug, 'server_id' => $serverId], $this);
+        $this->post("orgs/{$organizationSlug}/servers/{$serverId}/monitors", $data);
     }
 
     /**
      * Delete the given monitor.
-     *
-     * @param  string  $organizationSlug
-     * @param  string  $serverId
-     * @param  string  $monitorId
-     * @return void
      */
-    public function deleteMonitor($organizationSlug, $serverId, $monitorId)
+    public function deleteMonitor(string $organizationSlug, int $serverId, int $monitorId): void
     {
         $this->delete("orgs/{$organizationSlug}/servers/{$serverId}/monitors/{$monitorId}");
     }
